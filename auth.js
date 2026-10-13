@@ -1,0 +1,4 @@
+const jwt=require("jsonwebtoken");const User=require("../models/User");const asyncHandler=require("../utils/asyncHandler");
+const protect=asyncHandler(async(req,res,next)=>{const [scheme,token]=String(req.headers.authorization||"").split(" ");if(scheme!=="Bearer"||!token)return res.status(401).json({message:"Please log in to continue."});let payload;try{payload=jwt.verify(token,process.env.JWT_SECRET);}catch{return res.status(401).json({message:"Session expired or token is invalid."});}const user=await User.findById(payload.sub);if(!user||!user.active)return res.status(401).json({message:"This account is unavailable."});req.user={id:user._id.toString(),name:user.name,email:user.email,role:user.role};next();});
+function requireAdmin(req,res,next){if(req.user?.role!=="admin")return res.status(403).json({message:"Admin permission required."});next();}
+module.exports={protect,requireAdmin};
