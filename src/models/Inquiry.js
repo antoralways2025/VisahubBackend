@@ -50,6 +50,8 @@ const schema = new mongoose.Schema({
       "Visitor Visa",
       "Work Visa",
       "Immigration Consultation",
+      " Application preparation",
+      "Interview / Pre-departure",
       "Other"
     ]
   },
