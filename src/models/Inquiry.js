@@ -41,7 +41,7 @@ const schema = new mongoose.Schema({
 
   service: {
     type: String,
-    required: true,
+    required: false ,
     enum: [
       "Student Visa",
       "Student visa guidance",
