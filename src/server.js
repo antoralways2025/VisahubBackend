@@ -13,7 +13,7 @@ app.set("trust proxy", 1);
 app.use(helmet());
 app.use(cors({ origin(origin, cb) {
   if (!origin) return cb(null, true);
-  const allowed = (process.env.CLIENT_ORIGINS || "http://localhost:3000").split(",").map(x => x.trim()).filter(Boolean);
+  const allowed = (process.env.CLIENT_ORIGINS || "https://globalvisahubbd.vercel.app").split(",").map(x => x.trim()).filter(Boolean);
   return allowed.includes(origin) ? cb(null, true) : cb(new Error("CORS blocked this origin."));
 }, methods:["GET","POST","PATCH","DELETE","OPTIONS"], allowedHeaders:["Content-Type","Authorization"] }));
 app.use(express.json({limit:"20kb"}));
