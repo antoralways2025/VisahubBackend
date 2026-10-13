@@ -1,0 +1,27 @@
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const connectDB = require("./utils/connectDB");
+const inquiryRoutes = require("./routes/inquiryRoutes");
+const authRoutes = require("./routes/authRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const app = express();
+const PORT = process.env.PORT || 5000;
+app.set("trust proxy", 1);
+app.use(helmet());
+app.use(cors({ origin(origin, cb) {
+  if (!origin) return cb(null, true);
+  const allowed = (process.env.CLIENT_ORIGINS || "http://localhost:3000").split(",").map(x => x.trim()).filter(Boolean);
+  return allowed.includes(origin) ? cb(null, true) : cb(new Error("CORS blocked this origin."));
+}, methods:["GET","POST","PATCH","DELETE","OPTIONS"], allowedHeaders:["Content-Type","Authorization"] }));
+app.use(express.json({limit:"20kb"}));
+app.use(express.urlencoded({extended:false,limit:"20kb"}));
+app.use("/api/inquiries", rateLimit({windowMs:15*60*1000,limit:30,standardHeaders:"draft-7",legacyHeaders:false,message:{message:"Too many requests. Please try again later."}}), inquiryRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
+app.get("/api/health", (_req,res)=>res.json({status:"ok",service:"Global Visa Hub API"}));
+app.use((_req,res)=>res.status(404).json({message:"Route not found."}));
+app.use((err,_req,res,_next)=>{ console.error(err); const status=err.message==="CORS blocked this origin."?403:(err.status||500); res.status(status).json({message:status===500?"Internal server error.":err.message}); });
+(async()=>{try{await connectDB();app.listen(PORT,()=>console.log(`API running on port ${PORT}`));}catch(e){console.error("Could not start server:",e.message);process.exit(1);}})();
